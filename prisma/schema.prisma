@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String   // Hashed password
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastActive    DateTime @default(now())
+  dmsPeriod     Int      @default(30) // Days
+  dmsStatus     String   @default("ACTIVE") // ACTIVE, PENDING, TRIGGERED
+  notifyEmail   String?  // Emergency contact email
+  assets        Asset[]
+  beneficiaries Beneficiary[]
+  activityLogs  ActivityLog[]
+}
+
+model Asset {
+  id            String   @id @default(uuid())
+  type          String   // subscription, investment, legal_document, crypto, text_note
+  name          String   // Asset name/title
+  platform      String?  // Platform/provider name (e.g., Netflix, Binance)
+  encryptedData String   // Encrypted sensitive data
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Beneficiary {
+  id                  String    @id @default(uuid())
+  email               String    // Beneficiary email for notifications
+  name                String
+  relationship        String
+  accessKey           String    @unique @default(uuid()) // Unique key for them to claim
+  verificationStatus  String    @default("PENDING") // PENDING, VERIFIED, FAILED
+  stripeSessionId     String?   // Track Stripe verification session
+  accessGrantedAt     DateTime? // When access was granted after verification
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  type      String   // heartbeat, login, asset_added, beneficiary_added, dms_triggered
+  message   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
