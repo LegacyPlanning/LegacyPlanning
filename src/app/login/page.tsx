@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Shield } from "lucide-react";
+import { Mail, Lock, Shield, Loader } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card, { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -45,6 +45,41 @@ export default function LoginPage() {
     };
 
     return (
+        <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                icon={<Mail className="w-5 h-5" />}
+                required
+            />
+            <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={<Lock className="w-5 h-5" />}
+                required
+            />
+
+            {error && (
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                </div>
+            )}
+
+            <Button type="submit" className="w-full" size="lg" loading={loading}>
+                Sign In
+            </Button>
+        </form>
+    );
+}
+
+export default function LoginPage() {
+    return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -68,36 +103,13 @@ export default function LoginPage() {
                         <CardDescription>Sign in to access your vault</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <Input
-                                label="Email"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                icon={<Mail className="w-5 h-5" />}
-                                required
-                            />
-                            <Input
-                                label="Password"
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                icon={<Lock className="w-5 h-5" />}
-                                required
-                            />
-
-                            {error && (
-                                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                                </div>
-                            )}
-
-                            <Button type="submit" className="w-full" size="lg" loading={loading}>
-                                Sign In
-                            </Button>
-                        </form>
+                        <Suspense fallback={
+                            <div className="flex items-center justify-center py-8">
+                                <Loader className="w-6 h-6 animate-spin text-indigo-500" />
+                            </div>
+                        }>
+                            <LoginForm />
+                        </Suspense>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-500 dark:text-gray-400">

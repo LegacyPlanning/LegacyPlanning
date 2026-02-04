@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_mock", {
-    apiVersion: "2024-12-18",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_mock");
 
 export async function POST(request: Request) {
     try {
